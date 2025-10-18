@@ -32,6 +32,5 @@ private:
 	void playerToGo();                                             // функция ход игрока
 	void computerToGo();                                           // функция ход компьютера
 	void changingPositionsChips(int, int);                         // функция изменение позиций фишек создана для уменьшения кода в условиях хода компьютера
-	bool possibilityMoveComp(bool);             // проверка возможности хода компьютера
+	bool possibilityOfMove(bool);                                  // функция проверяет есть ли учерных ходы
 };
-

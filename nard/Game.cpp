@@ -249,6 +249,7 @@ void Game::movingComp()
 {
     static bool firstMove = false;             // переменная первый ход
     static bool moveFromHead = false;          // переменная ход с головы
+    // варианты первого хода
     if (firstMove == false) {
         if (dice[0].getCircles() != dice[1].getCircles()) {
             if (field[12 + dice[0].getCircles() + dice[1].getCircles()].size() == 0) {
@@ -334,12 +335,186 @@ void Game::movingComp()
             }
         }
     }
+    ///////////////////////////////////////////////
     else if (firstMove == true) {
-        bool possibilityMove;
-        possibilityMove = possibilityMoveComp(moveFromHead);
+        bool currentMove = false;                                    // переменная отражающая текущий ход введена чтобы не проверять множество условий вариантов ходов
+        // проверка есть у черных ходы
+        bool possibilityMove = possibilityOfMove(moveFromHead);      //переменная есть ли ход у черных
+        ///////////////////////////////////
         if (possibilityMove == true) {
             if (field[12].size() != 0) {
-
+                if (moveFromHead == false && ((endMove == 2 && dice[0].getCircles() != dice[1].getCircles()) || endMove == 4)) {
+                    int min;
+                    if (dice[0].getCircles() <= dice[1].getCircles()) min = 0;
+                    else min = 1;
+                    if (field[12 + dice[min].getCircles()].size() == 0) {
+                        changingPositionsChips(12, dice[min].getCircles());
+                        moveFromHead = true;
+                        currentMove = true;
+                        dice[min].off();
+                        endMove -= 1;
+                    }
+                }
+                if (currentMove == false) {
+                    for (int i = 19; i < 24; ++i) {
+                        if (currentMove) break;
+                        if (field[i].size() != 0 && field[i][0].getColor() == sf::Color::Black) {
+                            for (int j = 0; j < dice.size(); ++j) {
+                                if (dice[j].getСondition()) {
+                                    int pos = i + dice[j].getCircles();
+                                    if (pos > 23) {
+                                        if (field[pos - 24].size() == 0) {
+                                            changingPositionsChips(i, dice[j].getCircles());
+                                            currentMove = true;
+                                            dice[j].off();
+                                            endMove -= 1;
+                                            break;
+                                        }
+                                    }
+                                    else break;
+                                }
+                            }
+                        }
+                    }
+                    if (currentMove == false && moveFromHead == false) {
+                        for (int i = 0; i < dice.size(); ++i) {
+                            if (dice[i].getСondition()) {
+                                if (field[12 + dice[i].getCircles()].size() == 0) {
+                                    changingPositionsChips(12, dice[i].getCircles());
+                                    moveFromHead = true;
+                                    currentMove = true;
+                                    dice[i].off();
+                                    endMove -= 1;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (currentMove == false) {
+                        for (int i = 13; i < 24; ++i) {
+                            if (currentMove) break;
+                            if (field[i].size() > 1 && field[i][0].getColor() == sf::Color::Black) {
+                                for (int j = 0; j < dice.size();++j) {
+                                    if (dice[j].getСondition()) {
+                                        int pos = i + dice[j].getCircles();
+                                        if (pos > 23) pos -= 24;
+                                        if (field[pos].size() == 0) {
+                                            changingPositionsChips(i, dice[j].getCircles());
+                                            currentMove = true;
+                                            dice[j].off();
+                                            endMove -= 1;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (currentMove == false) {
+                        for (int i = 0; i < 11; ++i) {
+                            if (currentMove) break;
+                            if (field[i].size() > 1 && field[i][0].getColor() == sf::Color::Black) {
+                                for (int j = 0; j < dice.size();++j) {
+                                    if (dice[j].getСondition()) {
+                                        int pos = i + dice[j].getCircles();
+                                        if (pos > 11) continue;
+                                        if (field[pos].size() == 0) {
+                                            changingPositionsChips(i, dice[j].getCircles());
+                                            currentMove = true;
+                                            dice[j].off();
+                                            endMove -= 1;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (currentMove == false) {
+                            for (int i = 12; i < 24; ++i) {
+                                if (currentMove) break;
+                                if (moveFromHead == true && i == 12)  continue;
+                                if (field[i].size() > 1 && field[i][0].getColor() == sf::Color::Black) {
+                                    for (int j = 0; j < dice.size();++j) {
+                                        if (dice[j].getСondition()) {
+                                            int pos = i + dice[j].getCircles();
+                                            if (pos > 23) pos -= 24;
+                                            if (field[pos].size() != 0 && field[pos][0].getColor() == sf::Color::Black) {
+                                                changingPositionsChips(i, dice[j].getCircles());
+                                                if (i == 12) moveFromHead = true;
+                                                currentMove = true;
+                                                dice[j].off();
+                                                endMove -= 1;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (currentMove == false) {
+                            for (int i = 0; i < 11; ++i) {
+                                if (currentMove) break;
+                                if (field[i].size() > 1 && field[i][0].getColor() == sf::Color::Black) {
+                                    for (int j = 0; j < dice.size();++j) {
+                                        if (dice[j].getСondition()) {
+                                            int pos = i + dice[j].getCircles();
+                                            if (pos > 11) continue;
+                                            if (field[pos].size() != 0 && field[pos][0].getColor() == sf::Color::Black) {
+                                                changingPositionsChips(i, dice[j].getCircles());
+                                                currentMove = true;
+                                                dice[j].off();
+                                                endMove -= 1;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (currentMove == false) {
+                            for (int i = 12; i < 24; ++i) {
+                                if (currentMove) break;
+                                if (moveFromHead == true && i == 12)  continue;
+                                if (field[i].size() != 0 && field[i][0].getColor() == sf::Color::Black) {
+                                    for (int j = 0; j < dice.size();++j) {
+                                        if (dice[j].getСondition()) {
+                                            int pos = i + dice[j].getCircles();
+                                            if (pos > 23) pos -= 24;
+                                            if (field[pos].size() == 0 || (field[pos].size() != 0 && field[pos][0].getColor() == sf::Color::Black)) {
+                                                changingPositionsChips(i, dice[j].getCircles());
+                                                if (i == 12) moveFromHead = true;
+                                                currentMove = true;
+                                                dice[j].off();
+                                                endMove -= 1;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (currentMove == false) {
+                            for (int i = 0; i < 11; ++i) {
+                                if (currentMove) break;
+                                if (field[i].size() != 0 && field[i][0].getColor() == sf::Color::Black) {
+                                    for (int j = 0; j < dice.size();++j) {
+                                        if (dice[j].getСondition()) {
+                                            int pos = i + dice[j].getCircles();
+                                            if (pos > 11) continue;
+                                            if (field[pos].size() == 0 ||(field[pos].size() != 0 && field[pos][0].getColor() == sf::Color::Black)) {
+                                                changingPositionsChips(i, dice[j].getCircles());
+                                                currentMove = true;
+                                                dice[j].off();
+                                                endMove -= 1;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             else if (field[12].size() == 0) {
 
@@ -347,6 +522,7 @@ void Game::movingComp()
         }
         else if (possibilityMove == false) {
             for (int i = 0; i < dice.size(); ++i) {
+                if (dice[i].getСondition() == true)
                 dice[i].noMove();
             }
             endMove = 0;
@@ -386,36 +562,20 @@ void Game::changingPositionsChips(int position, int dice)
     }
 }
 
-// проверка возможности хода компьютера
-bool Game::possibilityMoveComp(bool moveFromHead)
+bool Game::possibilityOfMove(bool moveFromHead)
 {
-    int index;              // переменная определяющая с какой позиции будет анализироваться возможность хода
-    if (moveFromHead == false) index = 12;
-    else index = 13;
-    std::vector<int> positionBlack; // массив индексов где находятся черные фишки
-    for (int i = index; i < 24; ++i) {
+    for (int i = 0; i < 24; ++i) {
+        if (moveFromHead == true && i == 12)  continue;
         if (field[i].size() != 0 && field[i][0].getColor() == sf::Color::Black) {
-            positionBlack.push_back(i);
-        }
-    }
-    for (int i = 0; i < positionBlack.size(); ++i) {
-        for (int j = 0; j < dice.size(); ++j) {
-            int position = positionBlack[i] + dice[j].getCircles();
-            if (position > 23) position = (positionBlack[i] + dice[j].getCircles()) - 24;
-            if (field[position].size() == 0 || (field[position].size() != 0 && field[position][0].getColor() == sf::Color::Black)) return 1;
-        }
-    }
-    positionBlack.clear();
-    for (int i = 0; i < 12; ++i) {
-        if (field[i].size() != 0 && field[i][0].getColor() == sf::Color::Black) {
-            positionBlack.push_back(i);
-        }
-    }
-    for (int i = 0; i < positionBlack.size(); ++i) {
-        for (int j = 0; j < dice.size(); ++j) {
-            int position = positionBlack[i] + dice[j].getCircles();
-            if (position <= 11) {
-                if (field[position].size() == 0 || (field[position].size() != 0 && field[position][0].getColor() == sf::Color::Black)) return 1;
+            for (int j = 0; j < dice.size(); ++j) {
+                if (dice[j].getСondition()) {
+                    int pos = i + dice[j].getCircles();
+                    if (i >= 12 && pos > 23) pos -= 24;
+                    if (i <= 11 && pos > 11) pos = -1;
+                    if (pos >= 0 && (field[pos].size() == 0 || (field[pos].size() != 0 && field[pos][0].getColor() == sf::Color::Black))) {
+                        return 1;
+                    }
+                }
             }
         }
     }
