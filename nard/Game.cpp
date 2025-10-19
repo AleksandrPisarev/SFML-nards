@@ -343,6 +343,7 @@ void Game::movingComp()
         ///////////////////////////////////
         if (possibilityMove == true) {
             if (field[12].size() != 0) {
+                // наименьшей ходом из головы в пустую
                 if (moveFromHead == false && ((endMove == 2 && dice[0].getCircles() != dice[1].getCircles()) || endMove == 4)) {
                     int min;
                     if (dice[0].getCircles() <= dice[1].getCircles()) min = 0;
@@ -355,6 +356,7 @@ void Game::movingComp()
                         endMove -= 1;
                     }
                 }
+                //перкрыть красным выход из головы
                 if (currentMove == false) {
                     for (int i = 19; i < 24; ++i) {
                         if (currentMove) break;
@@ -376,6 +378,7 @@ void Game::movingComp()
                             }
                         }
                     }
+                    // из головы любым ходом в пустую
                     if (currentMove == false && moveFromHead == false) {
                         for (int i = 0; i < dice.size(); ++i) {
                             if (dice[i].getСondition()) {
@@ -390,6 +393,7 @@ void Game::movingComp()
                             }
                         }
                     }
+                    // из 13-24 убираем сталактиты в пустую
                     if (currentMove == false) {
                         for (int i = 13; i < 24; ++i) {
                             if (currentMove) break;
@@ -410,6 +414,7 @@ void Game::movingComp()
                             }
                         }
                     }
+                    // из 0-11 убираем сталактиты в пустую
                     if (currentMove == false) {
                         for (int i = 0; i < 11; ++i) {
                             if (currentMove) break;
@@ -429,6 +434,7 @@ void Game::movingComp()
                                 }
                             }
                         }
+                        // из 12-24 убираем сталактиты в сталактиты
                         if (currentMove == false) {
                             for (int i = 12; i < 24; ++i) {
                                 if (currentMove) break;
@@ -451,6 +457,7 @@ void Game::movingComp()
                                 }
                             }
                         }
+                        // из 0-11 убираем сталактиы в сталактиты
                         if (currentMove == false) {
                             for (int i = 0; i < 11; ++i) {
                                 if (currentMove) break;
@@ -471,6 +478,28 @@ void Game::movingComp()
                                 }
                             }
                         }
+                        // перестановка фишек 19-24
+                        if (currentMove == false) {
+                            for (int i = 18; i < 24; ++i) {
+                                if (currentMove) break;
+                                if (field[i].size() != 0 && field[i][0].getColor() == sf::Color::Black) {
+                                    for (int j = 0; j < dice.size(); ++j) {
+                                        if (dice[j].getСondition()) {
+                                            int pos = i + dice[j].getCircles();
+                                            if (pos > 23) pos -= 24;
+                                            if (field[pos].size() == 0) {
+                                                changingPositionsChips(i, dice[j].getCircles());
+                                                currentMove = true;
+                                                dice[j].off();
+                                                endMove -= 1;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // переставляем из любой в любую
                         if (currentMove == false) {
                             for (int i = 12; i < 24; ++i) {
                                 if (currentMove) break;
@@ -493,6 +522,7 @@ void Game::movingComp()
                                 }
                             }
                         }
+                        // переставляем из любой в любую
                         if (currentMove == false) {
                             for (int i = 0; i < 11; ++i) {
                                 if (currentMove) break;
@@ -522,7 +552,7 @@ void Game::movingComp()
         }
         else if (possibilityMove == false) {
             for (int i = 0; i < dice.size(); ++i) {
-                if (dice[i].getСondition() == true)
+                if (dice[i].getСondition())
                 dice[i].noMove();
             }
             endMove = 0;
