@@ -95,17 +95,22 @@ void Game::movingChips()
 {
     static int activeChip = -1;              // переменная для определения какая фишка активная (какая фишка будет ходить)
     double distance;
+    static bool firstMoveUser = false;           // переменная первый ход
+    static int moveFromHeadUser = 1;             // переменная ход с головы
     ////////// проверяет клик мыши на попадание на фишку //////////
     // activChip переменная которая определяет кликнули на фишку или нет если на фишку кликнули она принимает значение индекса массива Field
     // изначально activeChip = -1
     if (activeChip < 0) {
-        for (int i = 0; i < 24; i++) {
-            if ((field[i].size() != 0) && (field[i][field[i].size() - 1].getColor() == sf::Color::Red)) {
+        int ii;
+        if (moveFromHeadUser > 0) ii = 0;
+        else ii = 1;
+        for (; ii < 24; ++ii) {
+            if ((field[ii].size() != 0) && (field[ii][field[ii].size() - 1].getColor() == sf::Color::Red)) {
                 // переменная которая определяет расстояние от клика мышки до центра фишки если расстояние меньше радиуса фишки
                 // значит клик попал на фишку и она стала активной
-                distance = sqrt(pow((event.mouseButton.x - field[i][field[i].size() - 1].getPosition().x), 2) + pow((event.mouseButton.y - field[i][field[i].size() - 1].getPosition().y), 2));
+                distance = sqrt(pow((event.mouseButton.x - field[ii][field[ii].size() - 1].getPosition().x), 2) + pow((event.mouseButton.y - field[ii][field[ii].size() - 1].getPosition().y), 2));
                 if (distance <= 13) {
-                    activeChip = i;
+                    activeChip = ii;
                     field[activeChip][field[activeChip].size() - 1].on();
                     break;
                 }
@@ -116,6 +121,7 @@ void Game::movingChips()
             bool flag = false; // устанавливается чтобы проверить есть ли возможность хода по первому или второму кубику если да тогда возможно есть возможность походить сразу по двум
             //кубикам
             for (int i = 0; i < dice.size(); ++i) {
+                if (activeChip + dice[i].getCircles() > 23) continue;
                 if (dice[i].getСondition() == true && (field[activeChip + dice[i].getCircles()].size() == 0 || field[activeChip + dice[i].getCircles()][0].getColor() == sf::Color::Red)) {
                     flag = true;
                     Hint hint;
@@ -124,18 +130,20 @@ void Game::movingChips()
                     hints.push_back(hint);
                 }
             }
-            if ((flag == true) && (field[activeChip + dice[0].getCircles() + dice[1].getCircles()].size() == 0 || field[activeChip + dice[0].getCircles() + dice[1].getCircles()][0].getColor() == sf::Color::Red)) {
-                Hint hint;
-                hint.setPosition(Chip::fieldCoord[activeChip + dice[0].getCircles() + dice[1].getCircles()]);
-                hint.getIndexDice().push_back(0);
-                hint.getIndexDice().push_back(1);
-                hints.push_back(hint);
+            if (activeChip + dice[0].getCircles() + dice[1].getCircles() <= 23) {
+                if ((flag == true) && (field[activeChip + dice[0].getCircles() + dice[1].getCircles()].size() == 0 || field[activeChip + dice[0].getCircles() + dice[1].getCircles()][0].getColor() == sf::Color::Red)) {
+                    Hint hint;
+                    hint.setPosition(Chip::fieldCoord[activeChip + dice[0].getCircles() + dice[1].getCircles()]);
+                    hint.getIndexDice().push_back(0);
+                    hint.getIndexDice().push_back(1);
+                    hints.push_back(hint);
+                }
             }
         }
         else if ((activeChip >= 0) && (endMove == 4 || endMove == 3 || endMove == 2)) {
             int count = 1;
             for (int i = 0; i < dice.size(); ++i) {
-                if (dice[i].getСondition() == false) continue;
+                if (dice[i].getСondition() == false || activeChip + dice[i].getCircles() * count > 23) continue;
                 if (field[activeChip + (dice[i].getCircles() * count)].size() == 0 || field[activeChip + (dice[i].getCircles() * count)][0].getColor() == sf::Color::Red) {
                     Hint hint;
                     hint.setPosition(Chip::fieldCoord[activeChip + dice[i].getCircles() * count]);
@@ -163,7 +171,8 @@ void Game::movingChips()
         }
         else if (activeChip >= 0 && endMove == 1) {
             for (int i = 0; i < dice.size(); ++i) {
-                if (dice[i].getСondition() == true && (field[activeChip + dice[i].getCircles()].size() == 0 || field[activeChip + dice[i].getCircles()][0].getColor() == sf::Color::Red)) {
+                if (dice[i].getСondition() == false || activeChip + dice[i].getCircles() > 23) continue;
+                if (field[activeChip + dice[i].getCircles()].size() == 0 || field[activeChip + dice[i].getCircles()][0].getColor() == sf::Color::Red) {
                     Hint hint;
                     hint.setPosition(Chip::fieldCoord[activeChip + dice[i].getCircles()]);
                     hint.getIndexDice().push_back(i);
@@ -174,6 +183,7 @@ void Game::movingChips()
     }
     ////////// проверяет клик мыши на то место куда необходимо переставить фишку //////////
     else if (activeChip >= 0) {
+        if (firstMoveUser == false && endMove == 4 && (dice[0].getCircles() == dice[1].getCircles() == 3 || dice[0].getCircles() == dice[1].getCircles() == 4 || dice[0].getCircles() == dice[1].getCircles() == 6)) moveFromHeadUser = 2;
         int index = -1; //переменная координата x для перемещения фишки
         for (int i = 0; i < hints.size(); ++i) {
             distance = sqrt(pow(event.mouseButton.x - hints[i].getPosition().x, 2) + pow(event.mouseButton.y - hints[i].getPosition().y, 2));
@@ -190,15 +200,25 @@ void Game::movingChips()
                 field[activeChip].pop_back();
                 // делает кубик по которому был сделан ход не активным и уменьшает количество ходов
                 for (int j = 0; j < hints[i].getIndexDice().size(); ++j) {
-                    dice[hints[i].getIndexDice()[j]].off();
-                    --endMove;
+                    if (firstMoveUser == false && (dice[0].getCircles() == dice[1].getCircles() == 6)) {
+                        dice[hints[i].getIndexDice()[j]].off();
+                        dice[hints[i].getIndexDice()[j] + 1].off();
+                        endMove -= 2;
+                    }
+                    else {
+                        dice[hints[i].getIndexDice()[j]].off();
+                        --endMove;
+                    }
                 }
             }
         }
         if (index == -1) field[activeChip][field[activeChip].size() - 1].off();
         else field[index][field[index].size() - 1].off();
+        if (activeChip == 0) moveFromHeadUser -= 1;
         activeChip = -1;
         hints.clear();
+        if (endMove == 0) moveFromHeadUser = 1;
+        if (endMove == 0 && firstMoveUser == false) firstMoveUser = true;
     }
 }
 // функция бросок кубиков
@@ -478,7 +498,7 @@ void Game::movingComp()
                                 }
                             }
                         }
-                        // перестановка фишек 19-24
+                        // перестановка фишек 18-24
                         if (currentMove == false) {
                             for (int i = 18; i < 24; ++i) {
                                 if (currentMove) break;
@@ -592,6 +612,7 @@ void Game::changingPositionsChips(int position, int dice)
     }
 }
 
+// функция проверяет есть ли учерных ходы
 bool Game::possibilityOfMove(bool moveFromHead)
 {
     for (int i = 0; i < 24; ++i) {
